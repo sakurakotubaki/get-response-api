@@ -1,5 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { ReceptionStatusTextResponse } from './types/ReceptionStatusText';
+import { AllReceptionTextsResponse } from './types/AllReceptionTexts';
 
 export const hello: APIGatewayProxyHandler = async (event) => {
   return {
@@ -38,6 +39,44 @@ export const getReceptionStatusText: APIGatewayProxyHandler = async (event) => {
         }
       },
       receptionInfo
+    };
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify(response)
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Internal Server Error' })
+    };
+  }
+};
+
+export const getAllReceptionTexts: APIGatewayProxyHandler = async (event) => {
+  try {
+    const response: AllReceptionTextsResponse = {
+      receptionStatuses: {
+        accepting: {
+          status: "受付中",
+          hours: "(4:00~23:15)",
+          isAccepting: true
+        },
+        nearEnd: {
+          status: "まもなく終了",
+          hours: "(0:00~23:15)",
+          isAccepting: true
+        },
+        closed: {
+          status: "受付時間外",
+          hours: "0:00から受付再開",
+          isAccepting: false
+        }
+      }
     };
 
     return {

@@ -29,3 +29,9 @@ functions:
       - httpApi:
           path: /reception-status
           method: get
+  getAllReceptionTexts:
+    handler: src/handler.getAllReceptionTexts
+    events:
+      - httpApi:
+          path: /reception-texts
+          method: get
