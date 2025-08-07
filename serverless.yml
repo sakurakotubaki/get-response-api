@@ -1,0 +1,31 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: sakurakotubaki
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: bff
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: get-response-api
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-northeast-1  # 東京リージョン
+  # Uncomment to easily set up a custom domain. Read the docs for more details:
+  # https://www.serverless.com/framework/docs/providers/aws/guide/domains
+  # domain: api.example.com
+
+plugins:
+  - serverless-offline
+
+functions:
+  hello:
+    handler: src/handler.hello
+    events:
+      - httpApi:
+          path: /
+          method: get
+  getReceptionStatusText:
+    handler: src/handler.getReceptionStatusText
+    events:
+      - httpApi:
+          path: /reception-status
+          method: get
