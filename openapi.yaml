@@ -1,0 +1,181 @@
+openapi: 3.0.3
+info:
+  title: 受付状況 API
+  version: 1.0.0
+  description: |
+    受付状況と各カテゴリの利用可否、全受付テキストを提供するAPI。
+    Serverless Framework (AWS Lambda + HTTP API) 上で動作。
+servers:
+  - url: http://localhost:3000
+    description: Local (serverless-offline)
+  - url: https://{apiId}.execute-api.ap-northeast-1.amazonaws.com/{stage}
+    description: Deployed API Gateway
+    variables:
+      apiId:
+        default: yourApiId
+        description: API Gateway ID
+      stage:
+        default: dev
+        description: Stage name
+paths:
+  /:
+    get:
+      summary: ヘルスチェック
+      operationId: getRoot
+      responses:
+        '200':
+          description: 正常応答
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                example:
+                  message: Go Serverless v4! Your function executed successfully!
+  /reception-status:
+    get:
+      summary: 現在の受付状況を取得
+      operationId: getReceptionStatus
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionStatusTextResponse'
+              examples:
+                example1:
+                  value:
+                    categories:
+                      newPhoneAndDeviceChange:
+                        items:
+                          - 新しい電話番号、機種変更
+                          - SIM再発行・タイプ変更
+                        isAvailable: true
+                      carrierSwitch:
+                        items:
+                          - ⚫︎⚫︎⚫︎⚫︎・△△△△△から乗り換え
+                          - 他社から乗り換え
+                        isAvailable: true
+                    receptionInfo:
+                      status: 受付中
+                      hours: (4:00~23:15)
+                      isAccepting: true
+        '500':
+          description: サーバー内部エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /reception-texts:
+    get:
+      summary: 受付ステータスの全パターンを取得
+      operationId: getAllReceptionTexts
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllReceptionTextsResponse'
+              examples:
+                example1:
+                  value:
+                    receptionStatuses:
+                      accepting:
+                        status: 受付中
+                        hours: (4:00~23:15)
+                        isAccepting: true
+                      nearEnd:
+                        status: まもなく終了
+                        hours: (0:00~23:15)
+                        isAccepting: true
+                      closed:
+                        status: 受付時間外
+                        hours: 0:00から受付再開
+                        isAccepting: false
+        '500':
+          description: サーバー内部エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ReceptionStatusTextResponse:
+      type: object
+      properties:
+        categories:
+            type: object
+            properties:
+              newPhoneAndDeviceChange:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: string
+                  isAvailable:
+                    type: boolean
+              carrierSwitch:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: string
+                  isAvailable:
+                    type: boolean
+        receptionInfo:
+          type: object
+          properties:
+            status:
+              type: string
+              description: "受付中 | 受付時間外 | まもなく終了"
+            hours:
+              type: string
+            isAccepting:
+              type: boolean
+      required:
+        - categories
+        - receptionInfo
+    AllReceptionTextsResponse:
+      type: object
+      properties:
+        receptionStatuses:
+          type: object
+          properties:
+            accepting:
+              $ref: '#/components/schemas/ReceptionInfo'
+            nearEnd:
+              $ref: '#/components/schemas/ReceptionInfo'
+            closed:
+              $ref: '#/components/schemas/ReceptionInfo'
+          required:
+            - accepting
+            - nearEnd
+            - closed
+      required:
+        - receptionStatuses
+    ReceptionInfo:
+      type: object
+      properties:
+        status:
+          type: string
+        hours:
+          type: string
+        isAccepting:
+          type: boolean
+      required:
+        - status
+        - hours
+        - isAccepting
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
